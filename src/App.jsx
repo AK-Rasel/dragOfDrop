@@ -10,7 +10,8 @@ export const App = () => {
 };
 // full display
 const Board = () => {
-  const [cards, setCards] = useState(DEFAULT_CARDS);
+  const [cards, setCards] = useState(DEFAULT_CARDS); //Data
+  console.log(cards);
   return (
     <div className="flex h-full w-full gap-3 overflow-scroll p-12">
       <Column
@@ -49,6 +50,11 @@ const Board = () => {
 const Column = ({ title, headingColor, column, cards, setCards }) => {
   const [active, setActive] = useState(false);
   const filteredCards = cards.filter((c) => c.column === column);
+  const handleDragStart = (e, card) => {
+    console.log(e.dataTransfer.setData("cardId", card.id));
+    e.dataTransfer.setData("cardId", card.id);
+  };
+
   return (
     <div className="w-56 shrink-0">
       <div className="mb-3 flex items-center justify-between">
@@ -65,7 +71,7 @@ const Column = ({ title, headingColor, column, cards, setCards }) => {
         }`}
       >
         {filteredCards.map((c) => {
-          return <Card key={c.id} {...c} />;
+          return <Card key={c.id} {...c} handleDragStart={handleDragStart} />;
         })}
         <DropInDicator beforeId="-1" column={column} />
         <AddCard column={column} setCards={setCards} />
@@ -74,12 +80,13 @@ const Column = ({ title, headingColor, column, cards, setCards }) => {
   );
 };
 // card
-const Card = ({ title, id, column }) => {
+const Card = ({ title, id, column, handleDragStart }) => {
   return (
     <>
       <DropInDicator beforeId={id} column={column} />
       <div
         draggable="true"
+        onDragStart={(e) => handleDragStart(e, { title, id, column })}
         className="cursor-grab rounded border border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing"
       >
         <p className="text-sm text-neutral-100">{title}</p>
@@ -100,8 +107,23 @@ const DropInDicator = ({ beforeId, column }) => {
 
 const BurnCard = ({ setCards }) => {
   const [active, setActive] = useState(false);
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setActive(true);
+  };
+  const handleDragLive = () => {
+    setActive(false);
+  };
+  const handleDragEnd = (e) => {
+    const cardId = e.dataTransfer.getData("cardId");
+    setCards((pv) => pv.filter((c) => c.id !== cardId));
+    setActive(false);
+  };
   return (
     <div
+      onDrop={handleDragEnd}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLive}
       className={`mt-10 grid h-56 w-56 shrink-0 place-content-center rounded border text-3xl ${
         active
           ? "border-red-800 bd-red-800/20 text-red-500 "
@@ -119,12 +141,14 @@ const AddCard = ({ column, setCards }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log(text);
+    console.log(text.trim().length);
     if (!text.trim().length) return;
     const newCard = {
       column,
       title: text.trim(),
       id: Math.random().toString(),
     };
+    console.log(newCard);
     setCards((pv) => [...pv, newCard]);
     setAdding(false);
   };
