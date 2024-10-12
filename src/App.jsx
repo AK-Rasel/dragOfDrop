@@ -55,6 +55,17 @@ const Column = ({ title, headingColor, column, cards, setCards }) => {
     console.log(e.dataTransfer.setData("cardId", card.id));
     e.dataTransfer.setData("cardId", card.id);
   };
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setActive(true);
+  };
+  const handleDragLive = () => {
+    setActive(false);
+  };
+  const handleDragEnd = (e) => {
+    e.preventDefault();
+    setActive(false);
+  };
 
   return (
     <div className="w-56 shrink-0">
@@ -67,6 +78,9 @@ const Column = ({ title, headingColor, column, cards, setCards }) => {
         </h3>
       </div>
       <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLive}
+        onDrop={handleDragEnd}
         className={`h-full w-full transition-colors ${
           active ? "bg-neutral-800/50" : "bg-neutral-800/0"
         }`}
