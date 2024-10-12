@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FaFire } from "react-icons/fa";
 import { FiPlus, FiTrash } from "react-icons/fi";
+import { motion } from "framer-motion";
 export const App = () => {
   return (
     <div className="h-screen w-full bg-neutral-900 text-neutral-50">
@@ -84,13 +85,15 @@ const Card = ({ title, id, column, handleDragStart }) => {
   return (
     <>
       <DropInDicator beforeId={id} column={column} />
-      <div
+      <motion.div
+        layout
+        layoutId={id}
         draggable="true"
         onDragStart={(e) => handleDragStart(e, { title, id, column })}
         className="cursor-grab rounded border border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing"
       >
         <p className="text-sm text-neutral-100">{title}</p>
-      </div>
+      </motion.div>
     </>
   );
 };
@@ -155,7 +158,7 @@ const AddCard = ({ column, setCards }) => {
   return (
     <>
       {adding ? (
-        <form onSubmit={handleSubmit}>
+        <motion.form layout onSubmit={handleSubmit}>
           <textarea
             onChange={(e) => setText(e.target.value)}
             autoFocus
@@ -177,15 +180,16 @@ const AddCard = ({ column, setCards }) => {
               <FiPlus />
             </button>
           </div>
-        </form>
+        </motion.form>
       ) : (
-        <button
+        <motion.button
+          layout
           onClick={() => setAdding(true)}
           className="flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
         >
           <span>Add card</span>
           <FiPlus />
-        </button>
+        </motion.button>
       )}
     </>
   );
