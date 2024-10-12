@@ -12,7 +12,7 @@ export const App = () => {
 // full display
 const Board = () => {
   const [cards, setCards] = useState(DEFAULT_CARDS); //Data
-  console.log(cards);
+
   return (
     <div className="flex h-full w-full gap-3 overflow-scroll p-12">
       <Column
@@ -52,19 +52,55 @@ const Column = ({ title, headingColor, column, cards, setCards }) => {
   const [active, setActive] = useState(false);
   const filteredCards = cards.filter((c) => c.column === column);
   const handleDragStart = (e, card) => {
-    console.log(e.dataTransfer.setData("cardId", card.id));
     e.dataTransfer.setData("cardId", card.id);
   };
   const handleDragOver = (e) => {
     e.preventDefault();
+    highLiteIndicator(e);
     setActive(true);
   };
   const handleDragLive = () => {
     setActive(false);
+    clearHighLight();
   };
   const handleDragEnd = (e) => {
     e.preventDefault();
     setActive(false);
+    clearHighLight();
+  };
+  const highLiteIndicator = (e) => {
+    const indicators = getIndicators();
+    clearHighLight(indicators);
+    const el = grtNearestIndicator(e, indicators);
+    el.element.style.opacity = "1";
+  };
+  const grtNearestIndicator = (e, indicators) => {
+    const DISTANCE_OFFSET = 50;
+    const el = indicators.reduce(
+      (closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = e.clientY - (box.top + DISTANCE_OFFSET);
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      },
+      {
+        offset: Number.NEGATIVE_INFINITY,
+        element: indicators[indicators.length - 1],
+      }
+    );
+    return el;
+  };
+  const clearHighLight = (els) => {
+    const indicators = els || getIndicators();
+    indicators.forEach((i) => {
+      i.style.opacity = "0";
+    });
+  };
+  const getIndicators = () => {
+    return Array.from(document.querySelectorAll(`[data-column='${column}']`));
   };
 
   return (
