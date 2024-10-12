@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaFire } from "react-icons/fa";
 import { FiPlus, FiTrash } from "react-icons/fi";
 import { motion } from "framer-motion";
@@ -11,7 +11,17 @@ export const App = () => {
 };
 // full display
 const Board = () => {
-  const [cards, setCards] = useState(DEFAULT_CARDS); //Data
+  const [cards, setCards] = useState([]); //Data
+  const [hasChecked, setHasChecked] = useState(false);
+  useEffect(() => {
+    hasChecked && localStorage.setItem("cards", JSON.stringify(cards));
+  }, [cards]);
+  useEffect(() => {
+    const cardData = localStorage.getItem("cards");
+    setCards(cardData ? JSON.parse(cardData) : []);
+
+    setHasChecked(true);
+  }, []);
 
   return (
     <div className="flex h-full w-full gap-3 overflow-scroll p-12">
@@ -52,7 +62,7 @@ const Column = ({ title, headingColor, column, cards, setCards }) => {
   const [active, setActive] = useState(false);
   const filteredCards = cards.filter((c) => c.column === column);
   const handleDragStart = (e, card) => {
-    e.dataTransfer.setData("cardId", card.id);
+    e.dataTransfer.setData("cardId", card.id); // id
   };
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -67,6 +77,28 @@ const Column = ({ title, headingColor, column, cards, setCards }) => {
     e.preventDefault();
     setActive(false);
     clearHighLight();
+    const cardId = e.dataTransfer.getData("cardId"); //getId
+    const indicators = getIndicators();
+    const { element } = grtNearestIndicator(e, indicators);
+    const before = element.dataset.before || "-1";
+    if (before !== cardId) {
+      let copy = [...cards];
+      let cardToTransfer = copy.find((c) => c.id === cardId);
+      if (!cardToTransfer) return;
+      cardToTransfer = { ...cardToTransfer, column };
+      copy = copy.filter((c) => c.id !== cardId);
+      const moveToBack = before === "-1";
+      if (moveToBack) {
+        copy.push(cardToTransfer);
+      } else {
+        const insetAtInbox = copy.findIndex((el) => el.id === before);
+        if (insetAtInbox === undefined) {
+          return;
+        }
+        copy.splice(insetAtInbox, 0, cardToTransfer);
+      }
+      setCards(copy);
+    }
   };
   const highLiteIndicator = (e) => {
     const indicators = getIndicators();
